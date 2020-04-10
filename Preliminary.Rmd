@@ -1,0 +1,35 @@
+---
+title: "Preliminary Exploratory Data Analysis"
+authors: "Kelly Cooper & Adam Seiff"
+output: html_notebook
+---
+
+## Front Matter
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyr)
+library(ggplot2)
+library(DataComputing)
+library(data.table)
+```
+## Guiding Question
+
+**How much did the spread of COVID-19 affect unemployment amongst Americans of different demographics and across different states?**
+
+## Our Data Sources
+
+[linked phrase](https://www.kaggle.com/fireballbyedimyrnmom/us-counties-covid-19-dataset)
+
+For the "US Counties COVID 19 dataset", we found this on Kaggle.com. This dataset was collected and maintained by the New York Times.  This dataset was started when the first confirmed case of the novel coronavirus hit the US back in late January. It is intended to be used to track the spread of this virus within the United States. There are approximately 35.7k cases in this dataset and each case represents a unique confirmation of the virus within a particular data and location (county and state). For example, one row describes two cases of coronavirus found present in San Fransisco, CA on Feburary 6th, 2020. There are only 6 column variables so we will be utilizing all of them, namely: `Date`, `County`, `State`, `fips`, `Cases`, and `Deaths`. 
+
+This dataset, `us-counties.csv`, is actually quite tidy, though
+
+[linked phrase](https://www.bls.gov/news.release/empsit.t01.htm)
+The U.S. Bureau of Labor Statistics has a recently-updated (as of April 4, 2020) table of the nationwide unemployment situation. This is a government organization meant to record and archive statistics relating to jobs and the economy. They have several tables of data for different situations and locations.
+
+This particular table is broken down by primarily by race (white, black, Asian), sex (male and female), and age group (16-19 vs. 20+). However, this data is very untidy, with each row being its own category or subcategory. Even the column months are split into "seasonal" and "not seasonal" adjustments. This will require a LOT of tidying in order for each row to represent a single case, and a single column a variable.
+
+Another problem comes from the fact that we currently do NOT know the unemployment data from March 2020 broken down across each state. This is important seeing as this was the month in which the COVID-19 pandemic began to seriously affect the country; a pivotal month when it cames to layoff. We hope to obtain a third dataset as soon as this information is released (hopefully soon). 
