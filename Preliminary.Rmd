@@ -17,19 +17,81 @@ library(data.table)
 ```
 ## Guiding Question
 
-**How much did the spread of COVID-19 affect unemployment amongst Americans of different demographics and across different states?**
+**How are cases COVID-19 distributed amongst Americans of different demographics (age, ethnicity, income, etc.) and across different states/counties? For instance, are poorer counties more likely to have a higher rate of COVID-19 cases than wealthier ones?**
 
 ## Our Data Sources
 
+### Primary Source
+
 [linked phrase](https://www.kaggle.com/fireballbyedimyrnmom/us-counties-covid-19-dataset)
 
-For the "US Counties COVID 19 dataset", we found this on Kaggle.com. This dataset was collected and maintained by the New York Times.  This dataset was started when the first confirmed case of the novel coronavirus hit the US back in late January. It is intended to be used to track the spread of this virus within the United States. There are approximately 35.7k cases in this dataset and each case represents a unique confirmation of the virus within a particular data and location (county and state). For example, one row describes two cases of coronavirus found present in San Fransisco, CA on Feburary 6th, 2020. There are only 6 column variables so we will be utilizing all of them, namely: `Date`, `County`, `State`, `fips`, `Cases`, and `Deaths`. 
+For the "US Counties COVID 19 dataset", we found this on Kaggle.com. This dataset was collected and maintained by the New York Times.  This dataset was started when the first confirmed case of the novel coronavirus hit the US back in late January. It is intended to be used to track the spread of this virus within the United States. 
 
-This dataset, `us-counties.csv`, is actually quite tidy, though
+The Kaggle user "MyrnaMFL" (of The New York Times) has been regularly updating this data. As of April 10, 2020, there are approximately 45.8k cases in this dataset and each case represents a unique confirmation of the virus within a particular data and location (county and state). For example, one row describes two cases of coronavirus found present in San Fransisco, CA on Feburary 6th, 2020.
 
-[linked phrase](https://www.bls.gov/news.release/empsit.t01.htm)
-The U.S. Bureau of Labor Statistics has a recently-updated (as of April 4, 2020) table of the nationwide unemployment situation. This is a government organization meant to record and archive statistics relating to jobs and the economy. They have several tables of data for different situations and locations.
+There are only 6 column variables so we will be utilizing all of them, namely: `Date`, `County`, `State`, `fips` (a code ID for counties), `Cases`, and `Deaths`. 
 
-This particular table is broken down by primarily by race (white, black, Asian), sex (male and female), and age group (16-19 vs. 20+). However, this data is very untidy, with each row being its own category or subcategory. Even the column months are split into "seasonal" and "not seasonal" adjustments. This will require a LOT of tidying in order for each row to represent a single case, and a single column a variable.
+This dataset, `us-counties.csv`, is actually quite tidy, though that doesn't necessarily mean we won't have to widen or narrow the data in the future. Additionally, seeing how often the data is updated, we will have to remember to download the latest version of the file for the final project.
 
-Another problem comes from the fact that we currently do NOT know the unemployment data from March 2020 broken down across each state. This is important seeing as this was the month in which the COVID-19 pandemic began to seriously affect the country; a pivotal month when it cames to layoff. We hope to obtain a third dataset as soon as this information is released (hopefully soon). 
+View the first 10 cases of `us-counties.csv` below:
+```{r}
+COVID <- read.csv("us-counties.csv")
+
+COVID %>% head(10)
+```
+
+### Secondary Source(s)
+
+**GUIDE TO DATASET VARIABLES**: [linked phrase](https://www2.census.gov/programs-surveys/popest/technical-documentation/file-layouts/2010-2018/cc-est2018-alldata.pdf)
+
+This dataset comes from census.gov, and contains demographic data for every county in the United States.  Each case represents a county's racial/ethnic makeup given an age group, which is in turn grouped by the year the population was estimated at. 
+
+For this project (and to ease the strain on our computers), we will only need the cases where `YEAR == 11`. This was the latest-recorded estimate of the demographics, done on July 1, 2018. This significantly reduces the row count from over 656,000 to about 59,000. This also allowed us to upload the file into a GitHub repository.
+
+Most of the variables involve the race/ethnicity of a county's citizens, so to really get the full picture, we will likely need all of these. However, I could most likely see us combining ("mutating"), say, male and female white populations if one of the questions explored is exclusively about ethnicity.
+
+Although the data contains many cases and variables, it appears tidy by R's standards, which is a plus.
+
+The first 50 cases of the data (where `YEAR == 11`) can be seen below:
+
+```{r}
+Demographics <- read.csv("Year11.csv")
+
+Demographics %>% head(50)
+```
+
+## Some Exploratory Analysis
+
+If we want to break down how COVID-19 cases are distributed, we should start (relatively) simple. For example, how are cases distributed by state as of the latest date in `COVID` (April 9th)?
+
+```{r}
+COVIDTotals <- COVID %>%
+  filter(date == "2020-04-09") %>%
+  group_by(state) %>%
+  summarise(totalCases = sum(cases))
+
+COVIDTotals %>%
+  ggplot(aes(x = state, y = totalCases)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90, size = 4))
+```
+
+**NOTE:** This plot is technically correct, though it looks a little messy. This is something we will need to correct for the final product!
+
+Next, what PERCENT of each state's population has COVID-19 (as of 4/9/2020)?
+
+```{r}
+StatePops <- Demographics %>%
+  filter(AGEGRP == 0) %>%
+  group_by(STNAME) %>%
+  summarise(StatePop = sum(TOT_POP))
+
+COVIDPercent <- StatePops %>%
+  inner_join(COVIDTotals, by = c("STNAME" = "state")) %>%
+  mutate(percent = round((totalCases/StatePop)*100, digits = 4))
+
+COVIDPercent %>%
+  ggplot(aes(x = STNAME, y = percent)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90, size = 4))
+```
