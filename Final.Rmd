@@ -67,7 +67,29 @@ CensusFiltered %>% head(100)
 ```{r}
 percentage <- function(x, y){
   preRound <- (x/y) * 100
-  roundCalc <- round(preRound, digits = 1)
+  roundCalc <- round(preRound, digits = 2)
   return(roundCalc)
 }
+```
+
+## The National Percentage
+```{r}
+TotalCOVID <- COVIDFiltered %>%
+  summarise(sum = sum(cases))
+numCases <- TotalCOVID[1,1]
+print(numCases)
+
+TotalPop <- CensusFiltered %>%
+  filter(AGEGRP != 0) %>% #AGEGRP = 0 sums up the population across all ages.
+  summarise(sum = sum(TOT_POP))
+popUSA <- TotalPop[1,1]
+print(popUSA)
+
+nationalPct <- percentage(numCases, popUSA) #This is an important variable!!
+print(nationalPct)
+```
+
+## Percentages Across Counties
+```{r}
+
 ```
