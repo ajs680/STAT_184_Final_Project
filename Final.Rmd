@@ -1,0 +1,65 @@
+---
+title: "STAT 184: Final Project"
+subtitle: "How COVID-19 Affects Different Counties & Demographics"
+author: "Adam Seiff & Kelly Cooper"
+output: html_notebook
+---
+## Front Matter
+```{r}
+# clean up workspace environment
+rm(list = ls())
+
+# packages used for the project
+library(tidyr)
+library(ggplot2)
+library(DataComputing)
+library(data.table)
+```
+
+## Guiding Question
+**How are cases COVID-19 distributed amongst Americans of different demographics (age and race) and across different counties? For instance, are counties with older populations more likely to have a higher rate of COVID-19 cases than those with younger populations?**
+
+## Loading & Filtering the Data
+
+### COVID-19 Data
+```{r}
+COVID <- read.csv("NEW us-counties (Apr 23).csv")
+
+COVIDFiltered <- COVID %>%
+  mutate(date = gsub(pattern = "/| +", replacement = "-", date)) %>%
+  mutate(county = gsub(pattern = "^ +| +$", replacement = "", county)) %>%
+  mutate(county = gsub(pattern = " {2,}", replacement = " ", county)) %>%
+  mutate(county = gsub(pattern = "^[a-z]", replacement = "[A-Z]", county)) %>%
+  mutate(state = gsub(pattern = "^ +| +$", replacement = "", state)) %>%
+  mutate(state = gsub(pattern = " {2,}", replacement = " ", state)) %>%
+  mutate(state = gsub(pattern = "^[a-z]", replacement = "[A-Z]", state)) %>%
+  filter(date == "2020-04-23", is.numeric(cases) == TRUE) %>%
+  select(county, state, cases)
+
+COVIDFiltered %>% head(100) 
+```
+
+### Census Data
+```{r}
+Census <- read.csv("Year11.csv")
+
+CensusFiltered <- Census %>%
+  mutate(White = NHWA_MALE + NHWA_FEMALE) %>%
+  mutate(Black = NHBA_MALE + NHBA_FEMALE) %>%
+  mutate(Hispanic = H_MALE + H_FEMALE) %>%
+  mutate(Asian = NHAA_MALE + NHAA_FEMALE) %>%
+  mutate(Native_American = NHIA_MALE + NHIA_FEMALE) %>%
+  mutate(Native_Hawaiian = NHNA_MALE + NHNA_FEMALE) %>%
+  mutate(Multiracial = NHTOM_MALE + NHTOM_FEMALE) %>%
+  mutate(county = gsub(pattern = "^ +| +$", replacement = "", CTYNAME)) %>%
+  mutate(county = gsub(pattern = " {2,}", replacement = " ", CTYNAME)) %>%
+  mutate(county = gsub(pattern = "^[a-z]", replacement = "[A-Z]", CTYNAME)) %>%
+  mutate(county = gsub(pattern = "County$", replacement = "", ignore.case = TRUE, CTYNAME)) %>%
+  mutate(state = gsub(pattern = "^ +| +$", replacement = "", STNAME)) %>%
+  mutate(state = gsub(pattern = " {2,}", replacement = " ", STNAME)) %>%
+  mutate(state = gsub(pattern = "^[a-z]", replacement = "[A-Z]", STNAME)) %>%
+  select(county, state, AGEGRP, TOT_POP, White, Black, Hispanic, Asian, Native_American, Native_Hawaiian, Multiracial)
+
+CensusFiltered %>% head(100)
+```
+
