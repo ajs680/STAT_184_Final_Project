@@ -63,3 +63,11 @@ CensusFiltered <- Census %>%
 CensusFiltered %>% head(100)
 ```
 
+## User-Defined Functions
+```{r}
+percentage <- function(x, y){
+  preRound <- (x/y) * 100
+  roundCalc <- round(preRound, digits = 1)
+  return(roundCalc)
+}
+```
