@@ -19,7 +19,7 @@ library(data.table)
 ## Guiding Question
 **How are cases COVID-19 distributed amongst Americans of different demographics (age and race) and across different counties? For instance, are counties with older populations more likely to have a higher rate of COVID-19 cases than those with younger populations?**
 
-## Loading & Filtering the Data
+## Loading & Cleaning the Data
 
 ### COVID-19 Data
 ```{r}
@@ -64,6 +64,8 @@ CensusFiltered %>% head(100)
 ```
 
 ## User-Defined Functions
+
+### Percentage Calculation
 ```{r}
 percentage <- function(x, y){
   preRound <- (x/y) * 100
@@ -71,6 +73,7 @@ percentage <- function(x, y){
   return(roundCalc)
 }
 ```
+
 
 ## The National Percentage
 ```{r}
@@ -89,7 +92,139 @@ nationalPct <- percentage(numCases, popUSA) #This is an important variable!!
 print(nationalPct)
 ```
 
-## Percentages Across Counties
+## Demographic Percentages 
+### Race-Based 
+We will now convert our racial population counts into percentages of the population.
 ```{r}
+CensusPctRace <- CensusFiltered %>%
+  filter(AGEGRP == 0) %>%
+  mutate(WhitePct = percentage(White, TOT_POP)) %>%
+  mutate(BlackPct = percentage(Black, TOT_POP)) %>%
+  mutate(HispanicPct = percentage(Hispanic, TOT_POP)) %>%
+  mutate(AsianPct = percentage(Asian, TOT_POP)) %>%
+  mutate(NAPct = percentage(Native_American, TOT_POP)) %>%
+  mutate(NHPct = percentage(Native_Hawaiian, TOT_POP)) %>%
+  mutate(MultiPct = percentage(Multiracial, TOT_POP)) %>%
+  select(county, state, WhitePct, BlackPct, HispanicPct, AsianPct, NAPct, NHPct, MultiPct)
 
+CensusPctRace %>% head(50)
 ```
+
+### Age-Based
+```{r}
+CensusPctAge <- CensusFiltered %>%
+  select(county, state, TOT_POP, AGEGRP) %>%
+  pivot_wider(names_from = AGEGRP, names_prefix = "Group", values_from = TOT_POP) %>%
+  mutate(children = Group1 + Group2 + Group3) %>% 
+  mutate(young_adult = Group4 + Group5 + Group6 + Group7 + Group8) %>% 
+  mutate(middle_age = Group9 + Group10 + Group11 + Group12 + Group13) %>% 
+  mutate(senior = Group14 + Group15 + Group16 + Group17 + Group18) %>% 
+  mutate(childrenPct = percentage(children, Group0)) %>% 
+  mutate(young_adultPct = percentage(young_adult, Group0)) %>%
+  mutate(middle_agePct = percentage(middle_age, Group0)) %>%
+  mutate(seniorPct = percentage(senior, Group0)) %>%
+  select(county, state, childrenPct, young_adultPct, middle_agePct, seniorPct)
+```
+
+## Top 10 Counties for Each Demographic
+### By Race
+#### White
+```{r}
+Top10White <- CensusPctRace %>%
+  filter(rank(desc(WhitePct)) <= 10) %>%
+  select(county, state)
+
+Top10White
+```
+
+#### Black
+```{r}
+Top10Black <- CensusPctRace %>%
+  filter(rank(desc(BlackPct)) <= 10) %>%
+  select(county, state)
+
+Top10Black
+```
+
+#### Hispanic
+```{r}
+Top10Hispanic <- CensusPctRace %>%
+  filter(rank(desc(HispanicPct)) <= 10) %>%
+  select(county, state)
+
+Top10Hispanic
+```
+
+#### Asian
+```{r}
+Top10Asian <- CensusPctRace %>%
+  filter(rank(desc(AsianPct)) <= 10) %>%
+  select(county, state)
+
+Top10Asian
+```
+
+#### Native American
+```{r}
+Top10NativeAmerican <- CensusPctRace %>%
+  filter(rank(desc(NAPct)) <= 10) %>%
+  select(county, state)
+
+Top10NativeAmerican
+```
+
+#### Native Hawaiian
+```{r}
+Top10NativeHawaiian <- CensusPctRace %>%
+  filter(rank(desc(NHPct)) <= 10) %>%
+  select(county, state)
+
+Top10NativeHawaiian
+```
+
+#### Multiracial
+```{r}
+Top10Multi <- CensusPctRace %>%
+  filter(rank(desc(MultiPct)) <= 10) %>%
+  select(county, state)
+
+Top10Multi
+```
+
+### By Age
+#### Children
+```{r}
+Top10Children <- CensusPctAge %>%
+  filter(rank(desc(childrenPct)) <= 10) %>%
+  select(county, state)
+
+Top10Children
+```
+
+#### Young Adult
+```{r}
+Top10YoungAdult <- CensusPctAge %>%
+  filter(rank(desc(young_adultPct)) <= 10) %>%
+  select(county, state)
+
+Top10YoungAdult
+```
+
+#### Middle Age
+```{r}
+Top10MiddleAge <- CensusPctAge %>%
+  filter(rank(desc(middle_agePct)) <= 10) %>%
+  select(county, state)
+
+Top10MiddleAge
+```
+
+#### Senior
+```{r}
+Top10Senior <- CensusPctAge %>%
+  filter(rank(desc(seniorPct)) <= 10) %>%
+  select(county, state)
+
+Top10Senior
+```
+
