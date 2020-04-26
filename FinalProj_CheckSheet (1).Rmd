@@ -18,10 +18,10 @@ output:  html_notebook
 *Description: (1) Analysis includes at least two different data sources. (2) Primary data source may NOT be loaded from an R package--though supporting data may. (3) Access to all data sources is contained within the analysis. (4) Imported data is inspected at beginning of analysis using one or more R functions: e.g., str, glimpse, head, tail, names, nrow, etc*
 
 (A) .Rmd Line numbers where at least two different data sources are imported:  
-
+(line 35) imports primary COVID data. (line 52) Imports cenus data.
 
 (B) .Rmd Line numbers for inspecting data intake:  
-
+(line 36) and (line 53)
 
 ### Data Wrangling (5 out of 8 required)
 
@@ -29,6 +29,8 @@ output:  html_notebook
 
 
 (A) .Rmd Line number(s) for general data wrangling: 
+
+(lines 66-75) for COVID data, and (lines 93-108) for the cenus data. 
 
 
 (B) .Rmd Line number(s) for a join operation: 

@@ -108,6 +108,11 @@ CensusFiltered <- Census %>%
   select(county, state, AGEGRP, TOT_POP, White, Black, Hispanic, Asian, Native_American, Native_Hawaiian, Multiracial)
 ```
 
+```{r}
+Covid_Census<- inner_join(CensusFiltered, COVIDFiltered, by="county")
+head(Covid_Census)
+```
+
 ## User-Defined Functions
 The following section describes any functions we created in order to efficiently code for this project.
 
