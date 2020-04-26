@@ -1,6 +1,6 @@
 ---
 title: "STAT 184: Final Project"
-subtitle: "How COVID-19 Affects Different Counties & Demographics"
+subtitle: "How COVID-19 May Affect Different Counties & Demographics"
 author: "Adam Seiff & Kelly Cooper"
 output: html_notebook
 ---
@@ -143,7 +143,7 @@ RaceJoin
 ```{r}
 AgeJoin <- CensusPctAge %>%
   inner_join(COVIDFiltered) %>%
-  mutate(pctCases = percentage(cases, TOTAL))
+  mutate(pctCases = percentage(cases, TOTAL)) 
 
 AgeJoin
 ```
@@ -156,6 +156,12 @@ Top10White <- RaceJoin %>%
   select(county, state, WhitePct, pctCases) %>%
   filter(rank(desc(WhitePct)) <= 10)
 
+X <- Top10White %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+whiteMean <- Y[1,1]
+# This will be used LATER!
+
 Top10White
 ```
 
@@ -164,6 +170,11 @@ Top10White
 Top10Black <- RaceJoin %>%
   select(county, state, BlackPct, pctCases) %>%
   filter(rank(desc(BlackPct)) <= 10)
+
+X <- Top10Black %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+blackMean <- Y[1,1]
 
 Top10Black
 ```
@@ -174,6 +185,11 @@ Top10Hispanic <- RaceJoin %>%
   select(county, state, HispanicPct, pctCases) %>%
   filter(rank(desc(HispanicPct)) <= 10)
 
+X <- Top10Hispanic %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+hispanicMean <- Y[1,1]
+
 Top10Hispanic
 ```
 
@@ -182,6 +198,11 @@ Top10Hispanic
 Top10Asian <- RaceJoin %>%
   select(county, state, AsianPct, pctCases) %>%
   filter(rank(desc(AsianPct)) <= 10)
+
+X <- Top10Asian %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+asianMean <- Y[1,1]
 
 Top10Asian
 ```
@@ -192,6 +213,11 @@ Top10NA <- RaceJoin %>%
   select(county, state, NAPct, pctCases) %>%
   filter(rank(desc(NAPct)) <= 10)
 
+X <- Top10NA %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+NAMean <- Y[1,1]
+
 Top10NA
 ```
 
@@ -201,6 +227,11 @@ Top10NH <- RaceJoin %>%
   select(county, state, NHPct, pctCases) %>%
   filter(rank(desc(NHPct)) <= 10)
 
+X <- Top10NH %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+NHMean <- Y[1,1]
+
 Top10NH
 ```
 
@@ -209,6 +240,11 @@ Top10NH
 Top10Multi <- RaceJoin %>%
   select(county, state, MultiPct, pctCases) %>%
   filter(rank(desc(MultiPct)) <= 10)
+
+X <- Top10Multi %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+multiMean <- Y[1,1]
 
 Top10Multi
 ```
@@ -220,6 +256,11 @@ Top10Child <- AgeJoin %>%
   select(county, state, childrenPct, pctCases) %>%
   filter(rank(desc(childrenPct)) <= 10)
 
+X <- Top10Child %>% 
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+childMean <- as.numeric(Y[1,1])
+
 Top10Child
 ```
 
@@ -228,6 +269,11 @@ Top10Child
 Top10YA <- AgeJoin %>%
   select(county, state, young_adultPct, pctCases) %>%
   filter(rank(desc(young_adultPct)) <= 10)
+
+X <- Top10YA %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+YAMean <- as.numeric(Y[1,1])
 
 Top10YA
 ```
@@ -238,6 +284,11 @@ Top10Middle <- AgeJoin %>%
   select(county, state, middle_agePct, pctCases) %>%
   filter(rank(desc(middle_agePct)) <= 10)
 
+X <- Top10Middle %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+middleMean <- as.numeric(Y[1,1])
+
 Top10Middle
 ```
 
@@ -246,6 +297,11 @@ Top10Middle
 Top10Senior <- AgeJoin %>%
   select(county, state, seniorPct, pctCases) %>%
   filter(rank(desc(seniorPct)) <= 10)
+
+X <- Top10Senior %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+seniorMean <- as.numeric(Y[1,1])
 
 Top10Senior
 ```
@@ -261,6 +317,8 @@ Top10White %>%
   geom_bar(fill = "light blue", stat = "identity") +
   geom_hline(yintercept = nationalPct) +
   geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.28)) +
+  geom_hline(yintercept = whiteMean) +
+  geom_text(aes(label = paste("Graph Mean:", whiteMean, "%"), x = 7, y = whiteMean + 0.02)) +
   xlab("Counties w/Highest White Representation") +
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
@@ -272,7 +330,9 @@ Top10Black %>%
   ggplot(aes(x = county, y = pctCases)) +
   geom_bar(fill = "light blue", stat = "identity") +
   geom_hline(yintercept = nationalPct) +
-  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.28)) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 4, y = 0.28)) +
+  geom_hline(yintercept = blackMean) +
+  geom_text(aes(label = paste("Graph Mean:", blackMean, "%"), x = 7, y = blackMean + 0.02)) +
   xlab("Counties w/Highest Black Representation") +
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
@@ -285,6 +345,8 @@ Top10Hispanic %>%
   geom_bar(fill = "light blue", stat = "identity") +
   geom_hline(yintercept = nationalPct) +
   geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.27)) +
+  geom_hline(yintercept = hispanicMean) +
+  geom_text(aes(label = paste("Graph Mean:", hispanicMean, "%"), x = 7, y = hispanicMean + 0.01)) +
   xlab("Counties w/Highest Hispanic Representation") +
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
@@ -297,6 +359,8 @@ Top10Asian %>%
   geom_bar(fill = "light blue", stat = "identity") +
   geom_hline(yintercept = nationalPct) +
   geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.3)) +
+  geom_hline(yintercept = asianMean) +
+  geom_text(aes(label = paste("Graph Mean:", asianMean, "%"), x = 7, y = asianMean - 0.03)) +
   xlab("Counties w/Highest Asian Representation") +
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
@@ -309,6 +373,8 @@ Top10NA %>%
   geom_bar(fill = "light blue", stat = "identity") +
   geom_hline(yintercept = nationalPct) +
   geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.3)) +
+  geom_hline(yintercept = NAMean) +
+  geom_text(aes(label = paste("Graph Mean:", NAMean, "%"), x = 7, y = NAMean + 0.03)) +
   xlab("Counties w/Highest Native American Representation") +
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
@@ -321,6 +387,8 @@ Top10NH %>%
   geom_bar(fill = "light blue", stat = "identity") +
   geom_hline(yintercept = nationalPct) +
   geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.27)) +
+  geom_hline(yintercept = NHMean) +
+  geom_text(aes(label = paste("Graph Mean:", NHMean, "%"), x = 7, y = NHMean + 0.01)) +
   xlab("Counties w/Highest Native Hawaiian Representation") +
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
@@ -333,6 +401,8 @@ Top10Multi %>%
   geom_bar(fill = "light blue", stat = "identity") +
   geom_hline(yintercept = nationalPct) +
   geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.27)) +
+  geom_hline(yintercept = multiMean) +
+  geom_text(aes(label = paste("Graph Mean:", multiMean, "%"), x = 7, y = multiMean + 0.01)) +
   xlab("Counties w/Highest Multiracial Representation") +
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
@@ -346,6 +416,8 @@ Top10Child %>%
   geom_bar(fill = "light blue", stat = "identity") +
   geom_hline(yintercept = nationalPct) +
   geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.27)) +
+  geom_hline(yintercept = childMean) +
+  geom_text(aes(label = paste("Graph Mean:", childMean, "%"), x = 7, y = childMean + 0.02)) +
   xlab("Counties w/Highest Child Representation") +
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
@@ -358,6 +430,8 @@ Top10YA %>%
   geom_bar(fill = "light blue", stat = "identity") +
   geom_hline(yintercept = nationalPct) +
   geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.28)) +
+  geom_hline(yintercept = YAMean) +
+  geom_text(aes(label = paste("Graph Mean:", YAMean, "%"), x = 7, y = YAMean + 0.02)) +
   xlab("Counties w/Highest Young Adult Representation") +
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
@@ -370,6 +444,8 @@ Top10Middle %>%
   geom_bar(fill = "light blue", stat = "identity") +
   geom_hline(yintercept = nationalPct) +
   geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.27)) +
+  geom_hline(yintercept = middleMean) +
+  geom_text(aes(label = paste("Graph Mean:", middleMean, "%"), x = 7, y = middleMean + 0.02)) +
   xlab("Counties w/Highest Middle-Aged Representation") +
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
@@ -382,6 +458,8 @@ Top10Senior %>%
   geom_bar(fill = "light blue", stat = "identity") +
   geom_hline(yintercept = nationalPct) +
   geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.27)) +
+  geom_hline(yintercept = seniorMean) +
+  geom_text(aes(label = paste("Graph Mean:", seniorMean, "%"), x = 7, y = seniorMean + 0.02)) +
   xlab("Counties w/Highest Senior Representation") +
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
