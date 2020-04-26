@@ -14,6 +14,7 @@ library(tidyr)
 library(ggplot2)
 library(DataComputing)
 library(data.table)
+library(dplyr)
 ```
 
 ## Guiding Question
@@ -24,6 +25,7 @@ library(data.table)
 ### COVID-19 Data
 ```{r}
 COVID <- read.csv("NEW us-counties (Apr 23).csv")
+head(COVID)
 
 COVIDFiltered <- COVID %>%
   mutate(date = gsub(pattern = "/| +", replacement = "-", date)) %>%
@@ -40,6 +42,7 @@ COVIDFiltered %>% head(100)
 ```
 
 ### Census Data
+
 ```{r}
 Census <- read.csv("Year11.csv")
 
@@ -61,6 +64,13 @@ CensusFiltered <- Census %>%
   select(county, state, AGEGRP, TOT_POP, White, Black, Hispanic, Asian, Native_American, Native_Hawaiian, Multiracial)
 
 CensusFiltered %>% head(100)
+
+```
+
+```{r}
+Joined_fil<- inner_join(CensusFiltered, COVIDFiltered , by= 'county')
+
+Joined_fil
 ```
 
 ## User-Defined Functions
