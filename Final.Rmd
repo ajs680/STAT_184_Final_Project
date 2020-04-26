@@ -1,6 +1,6 @@
 ---
 title: "STAT 184: Final Project"
-subtitle: "How COVID-19 Affects Different Counties & Demographics"
+subtitle: "How COVID-19 May Affect Different Counties & Demographics"
 author: "Adam Seiff & Kelly Cooper"
 output: html_notebook
 ---
@@ -8,25 +8,61 @@ output: html_notebook
 ```{r}
 # clean up workspace environment
 rm(list = ls())
-
 # packages used for the project
 library(tidyr)
 library(ggplot2)
 library(DataComputing)
 library(data.table)
-library(dplyr)
 ```
 
 ## Guiding Question
-**How are cases COVID-19 distributed amongst Americans of different demographics (age and race) and across different counties? For instance, are counties with older populations more likely to have a higher rate of COVID-19 cases than those with younger populations?**
+**How are cases of COVID-19 distributed amongst Americans of different demographics (age and race) and across different counties? For instance, are counties with a high rate of senior citizens more likely to have a higher rate of COVID-19 cases than those with younger populations?**
 
-## Loading & Filtering the Data
+## About the Data Used
+### COVID-19 Dataset
+*Click this [link](https://www.kaggle.com/fireballbyedimyrnmom/us-counties-covid-19-dataset) to view the source of this data.*
 
-### COVID-19 Data
+We found this dataset on Kaggle. It was collected and maintained by user "MyrnaMFL", of The New York Times. She first started working on this dataset back when the first confirmed case of COVID-19 on American soil was reported in January. It is intended to be used to track the spread of the virus within the United States.
+
+"MyrnaMFL" has been updating the data on (at least) a daily basis. As of April 23, 2020, there are more than 84,000 rows in this dataset, and each row represents a the number of confirmed COVID-19 cases within a particular county on a particular date. For example, one row describes that 2 cases of COVID-19 had been confirmed in San Francisco, California (which is both a city AND a county) as of February 6, 2020.
+
+This dataset contains six column variables: `date`, `county`, `state`, `fips` (a county's code ID), `cases`, and `deaths`.
+
+For the most relevant results, we downloaded and used the April 23, 2020 version of the dataset.
+
+The first 10 cases can be viewed below:
 ```{r}
 COVID <- read.csv("NEW us-counties (Apr 23).csv")
-head(COVID)
+COVID %>% head(10)
+```
 
+### Census Demographics Dataset
+*Click this [link](https://www.census.gov/data/datasets/time-series/demo/popest/2010s-counties-detail.html?#) to view the source of this data. Go to the "Datasets" section, and click on the link "United States" to download the original file.*
+
+*Click this [link](https://www2.census.gov/programs-surveys/popest/technical-documentation/file-layouts/2010-2018/cc-est2018-alldata.pdf) to view a guide to the dataset's variables.*
+
+This dataset comes from census.cov, and contains demographic information for every county in the United States, based on the 2010 census. Each row represents a county's racial/ethnic and gender makeup given a discrete age group, which is in turn grouped by the year the population was estimated at. `AGEGRP == 0` sums up the racial/ethnic and gender makeups across ALL age groups.
+
+For this project (and to ease the strain on our computers), we only needed the cases where `YEAR == 11`. This was the latest-recorded ESTIMATE of the demographics, done on July 1, 2018. This significantly reduced the row count from over 656,000 to about 59,000.
+
+Most of the variables involve the race/ethnicity of a county's citizens. A big challenge was realizing that there was a lot of overlap between said variables. For example a "combination of white and other" overlapped with "two or more races", and even just "white" overlapped with "white of hispanic origin". To keep things less hectic, we made sure to focus specifically on variables such as "white alone", "black alone", etc.
+
+The first 20 cases of the data (where `YEAR == 11`) can be viewed below.
+```{r}
+Census <- read.csv("Year11.csv")
+Census %>% head(20)
+```
+
+## Cleaning the Data
+Before we use them any further, we need to clean up the datasets we loaded in. Using regular expression ("RegEx") procedures, we made sure that all cells within every variable followed a consistent format. This assures that we can wrangle and join the data with as much accuracy to the source material as possible.
+
+### COVID-19 Data
+Below, we ensured that all dates used the same dash (-) seperator, as apposed to slashes (/) or spaces. We also made sure that all county and state names did NOT contain any leading or trailing spaces, and for county/state names that contained two or more words, we made sure that there was only ONE space between said words. County and state names were also all capitalized, just in case they were not before.
+
+One more thing to take note of is that, from here on out, we ONLY used data from April 23, 2020 for this dataset. The data here accumulates as `date` becomes more recent, meaning that the number of COVID-19 cases in any given county on a given date will be as high as, or higher, than the county's number of cases on the previous date. As such, for the questions we are posing for this project, any data from before April 23rd is redundant, so it was filtered out for the computer to more quickly process our forthcoming code.
+
+The newly-cleaned dataset `COVIDFiltered` will contain the variables `county`, `state`, and `cases`.
+```{r}
 COVIDFiltered <- COVID %>%
   mutate(date = gsub(pattern = "/| +", replacement = "-", date)) %>%
   mutate(county = gsub(pattern = "^ +| +$", replacement = "", county)) %>%
@@ -37,15 +73,23 @@ COVIDFiltered <- COVID %>%
   mutate(state = gsub(pattern = "^[a-z]", replacement = "[A-Z]", state)) %>%
   filter(date == "2020-04-23", is.numeric(cases) == TRUE) %>%
   select(county, state, cases)
-
-COVIDFiltered %>% head(100) 
 ```
 
 ### Census Data
+As mentioned previously, many variables involving race/ethnicity contained overlap with one another, but there were also variables for solely each group, such as "non-Hispanic, black alone". Using those, and adding together the male and female populations for each, we then created the following variables representing each racial category below:
 
+* White
+* Black
+* Hispanic
+* Asian
+* Native American
+* Native Hawaiian
+* Multiracial
+
+Each county name in this dataset was followed by the word "County". In order for us to be able to join this dataset with `COVIDFiltered`, we needed to remove the word "County" from every value in `CTYNAME`. To clean up county and state names, similar procedures done for `COVIDFiltered` were also performed here. 
+
+The newly-cleaned dataset `CensusFiltered` will contain the variables `county`, `state`, `AGEGRP` (age group), `TOT_POP` (total population count), `White`, `Black`, `Hispanic`, `Asian`, `Native_American`, `Native_Hawaiian`, and `Multiracial`.
 ```{r}
-Census <- read.csv("Year11.csv")
-
 CensusFiltered <- Census %>%
   mutate(White = NHWA_MALE + NHWA_FEMALE) %>%
   mutate(Black = NHBA_MALE + NHBA_FEMALE) %>%
@@ -54,26 +98,25 @@ CensusFiltered <- Census %>%
   mutate(Native_American = NHIA_MALE + NHIA_FEMALE) %>%
   mutate(Native_Hawaiian = NHNA_MALE + NHNA_FEMALE) %>%
   mutate(Multiracial = NHTOM_MALE + NHTOM_FEMALE) %>%
-  mutate(county = gsub(pattern = "^ +| +$", replacement = "", CTYNAME)) %>%
-  mutate(county = gsub(pattern = " {2,}", replacement = " ", CTYNAME)) %>%
-  mutate(county = gsub(pattern = "^[a-z]", replacement = "[A-Z]", CTYNAME)) %>%
-  mutate(county = gsub(pattern = "County$", replacement = "", ignore.case = TRUE, CTYNAME)) %>%
+  mutate(county = gsub(pattern = "County", replacement = "", ignore.case = TRUE, CTYNAME)) %>%
+  mutate(county = gsub(pattern = "^ +| +$", replacement = "", county)) %>%
+  mutate(county = gsub(pattern = " {2,}", replacement = " ", county)) %>%
+  mutate(county = gsub(pattern = "^[a-z]", replacement = "[A-Z]", county)) %>%
   mutate(state = gsub(pattern = "^ +| +$", replacement = "", STNAME)) %>%
-  mutate(state = gsub(pattern = " {2,}", replacement = " ", STNAME)) %>%
-  mutate(state = gsub(pattern = "^[a-z]", replacement = "[A-Z]", STNAME)) %>%
+  mutate(state = gsub(pattern = " {2,}", replacement = " ", state)) %>%
+  mutate(state = gsub(pattern = "^[a-z]", replacement = "[A-Z]", state)) %>%
   select(county, state, AGEGRP, TOT_POP, White, Black, Hispanic, Asian, Native_American, Native_Hawaiian, Multiracial)
-
-CensusFiltered %>% head(100)
-
-```
-
-```{r}
-Joined_fil<- inner_join(CensusFiltered, COVIDFiltered , by= 'county')
-
-Joined_fil
 ```
 
 ## User-Defined Functions
+The following section describes any functions we created in order to efficiently code for this project.
+
+### Percentage Calculation
+Seeing how greatly population counts can vary across different counties, it was only logical for us to consider racial and age demographics within each county using percentages. However, converting everything from raw numbers to percentages would be quite the tedious process, so we created the function `percentage()` to streamline things.
+
+`percentage()` is a fairly straightforward function that works with numeric arguments `x` and `y`. Essentially, the function returns "`x` is __ percent of `y`". For example, if `x == 2` and `y == 50`, `percentage()` will return `4`; 2 is 4% of 50.
+
+After taking in the arguments, `x` is divided by `y`, the quantity of which is then multiplied by 100 as to get a proper percentage number instead of just a raw decimal (i.e. 4 instead of 0.04). All of this is then rounded to the nearest HUNDREDTH before being returned, so we can get numbers such as 1.43%.
 ```{r}
 percentage <- function(x, y){
   preRound <- (x/y) * 100
@@ -82,24 +125,384 @@ percentage <- function(x, y){
 }
 ```
 
-## The National Percentage
+## Converting to Percentages
+Now that we have our `percentage` function up and running, we can start converting the variables we need into percentages.
+
+### The Nationwide Infection Rate
+To see how prevalent COVID-19 is in certain counties, we have decided to use the NATIONWIDE percentage of the population diagnosed with the disease as a comparison point. This will come into play later, when we are graphing the data.
 ```{r}
 TotalCOVID <- COVIDFiltered %>%
   summarise(sum = sum(cases))
 numCases <- TotalCOVID[1,1]
-print(numCases)
-
 TotalPop <- CensusFiltered %>%
-  filter(AGEGRP != 0) %>% #AGEGRP = 0 sums up the population across all ages.
+  filter(AGEGRP != 0) %>% #REMINDER: AGEGRP = 0 sums up the population across ALL ages!
   summarise(sum = sum(TOT_POP))
 popUSA <- TotalPop[1,1]
-print(popUSA)
-
-nationalPct <- percentage(numCases, popUSA) #This is an important variable!!
+nationalPct <- percentage(numCases, popUSA) 
 print(nationalPct)
 ```
+As we can see, as of April 23, 2020, approximately 0.26% of the U.S. population has tested positive for COVID-19.
 
-## Percentages Across Counties
+### Race-Based Calculations 
+We will now convert our racial population counts from `CensusFiltered` into percentages of the population. We will store this new data into the table `CensusPctRace`.
 ```{r}
+CensusPctRace <- CensusFiltered %>%
+  filter(AGEGRP == 0) %>%
+  mutate(WhitePct = percentage(White, TOT_POP)) %>%
+  mutate(BlackPct = percentage(Black, TOT_POP)) %>%
+  mutate(HispanicPct = percentage(Hispanic, TOT_POP)) %>%
+  mutate(AsianPct = percentage(Asian, TOT_POP)) %>%
+  mutate(NAPct = percentage(Native_American, TOT_POP)) %>%
+  mutate(NHPct = percentage(Native_Hawaiian, TOT_POP)) %>%
+  mutate(MultiPct = percentage(Multiracial, TOT_POP)) %>%
+  select(county, state, TOT_POP, WhitePct, BlackPct, HispanicPct, AsianPct, NAPct, NHPct, MultiPct)
+CensusPctRace %>% head(10)
+```
 
+### Age-Based Calculations
+We will now convert our age group population counts from `CensusFiltered` into percentages of the population. We will store this new data into the table `CensusPctAge`.
+
+Doing this was a little more complicated than creating `CensusPctRace`, primarily because of the variable `AGEGRP`. Not incluing the total counter value, `AGEGRP == 0`, there were 18 different levels of this variable, each representing the population count of a certain age group of a 5-year interval (e.g. `AGEGRP == 1` encompasses ages 0-4, `AGEGRP == 2` is ages 5-9, etc.). 
+
+We wanted to condense these 18 smaller age groups into 4 larger groups, but to do that, we had to widen `CensusFiltered` so that each level of `AGEGRP` was now its own variable, with `TOT_POP` (total population count) making up its values. One last problem came when we realized that the variable names were numeric, so we made sure to override this by adding the word "Group" in front of each one.
+
+After widening the data, we were successfully able to lump the age groups into 4 distinct categories:
+
+* Children - Ages 14 and under
+* Young Adults - Ages 15 to 39
+* Middle Aged - Ages 40 to 64
+* Seniors - Ages 65 and up
+
+With help from `Group0` and `percentage()`, we were then able to convert the population counts of our 4 new age groups into percentages.
+```{r}
+CensusPctAge <- CensusFiltered %>%
+  select(county, state, TOT_POP, AGEGRP) %>%
+  pivot_wider(names_from = AGEGRP, names_prefix = "Group", values_from = TOT_POP) %>%
+  mutate(TOTAL = Group0) %>% #Group0 sums up the population across ALL ages!
+  mutate(children = Group1 + Group2 + Group3) %>% 
+  mutate(young_adult = Group4 + Group5 + Group6 + Group7 + Group8) %>% 
+  mutate(middle_age = Group9 + Group10 + Group11 + Group12 + Group13) %>% 
+  mutate(senior = Group14 + Group15 + Group16 + Group17 + Group18) %>% 
+  mutate(childrenPct = percentage(children, TOTAL)) %>% 
+  mutate(young_adultPct = percentage(young_adult, TOTAL)) %>%
+  mutate(middle_agePct = percentage(middle_age, TOTAL)) %>%
+  mutate(seniorPct = percentage(senior, TOTAL)) %>%
+  select(county, state, TOTAL, childrenPct, young_adultPct, middle_agePct, seniorPct)
+CensusPctAge %>% head(10)
+```
+
+## Joining the Datasets
+We will now join both of our percentage-converted datasets, which contain demographic data for each county, with `COVIDFiltered`, which contains the number of COVID-19 cases per county. We will get two new tables out of this, one merging `CensusPctRace` with `COVIDFiltered`, the other merging `CensusPctAge` with `COVIDFiltered`.
+
+Additionally, since we now have `cases` (number of COVID-19 cases in a given county) in the same tables as our total county population variables, we will create a new variable, `pctCases` in BOTH newly-merged tables that gives the percentage of people in each county who have tested positive for COVID-19.
+
+### Using Race
+```{r}
+RaceJoin <- CensusPctRace %>%
+  inner_join(COVIDFiltered) %>%
+  mutate(pctCases = percentage(cases, TOT_POP))
+```
+
+### Using Age
+```{r}
+AgeJoin <- CensusPctAge %>%
+  inner_join(COVIDFiltered) %>%
+  mutate(pctCases = percentage(cases, TOTAL)) 
+```
+
+## Finding Counties with High Demographic Representations
+One less-than-ideal hand we were dealt was the fact that we could not seem to find any reliable datasets that broke down COVID-19 cases by race and age.
+
+This was when we decided on an alternative idea: for EACH demographic group we analyzed, we would find the top 10 counties in which they were the most represented (by percentage). For example, we would wrangle `RaceJoin` to find the 10 counties with the highest percentages of white people. We would then see how those counties' COVID-19 infection rates stacked up against the NATIONWIDE infection rate of 0.26%, which we calculated earlier.
+
+Additionally, after finding the top 10 highest-represented counties for each racial and age demographic, we extracted the mean infection rate amongst those 10 counties. This will be used as a reference point when we graph our data later.
+
+Another **important** thing to keep in mind is that whenever we break our data down by race, assume that that each racial group is comprised of EVERY age group. Likewise, whenever we break our data down by age, assume that each age group is comprised of EVERY racial group. 
+
+### Racial Representation per County
+#### White
+```{r}
+Top10White <- RaceJoin %>%
+  select(county, state, WhitePct, pctCases) %>%
+  filter(rank(desc(WhitePct), ties.method = "first") <= 10)
+X <- Top10White %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+whiteMean <- Y[1,1]
+# This will be used LATER!
+Top10White
+```
+
+#### Black
+```{r}
+Top10Black <- RaceJoin %>%
+  select(county, state, BlackPct, pctCases) %>%
+  filter(rank(desc(BlackPct), ties.method = "first") <= 10)
+X <- Top10Black %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+blackMean <- Y[1,1]
+```
+
+#### Hispanic
+```{r}
+Top10Hispanic <- RaceJoin %>%
+  select(county, state, HispanicPct, pctCases) %>%
+  filter(rank(desc(HispanicPct), ties.method = "first") <= 10)
+X <- Top10Hispanic %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+hispanicMean <- Y[1,1]
+```
+
+#### Asian
+```{r}
+Top10Asian <- RaceJoin %>%
+  select(county, state, AsianPct, pctCases) %>%
+  filter(rank(desc(AsianPct), ties.method = "first") <= 10)
+X <- Top10Asian %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+asianMean <- Y[1,1]
+```
+
+#### Native American
+```{r}
+Top10NA <- RaceJoin %>%
+  select(county, state, NAPct, pctCases) %>%
+  filter(rank(desc(NAPct), ties.method = "first") <= 10)
+X <- Top10NA %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+NAMean <- Y[1,1]
+```
+
+#### Native Hawaiian
+```{r}
+Top10NH <- RaceJoin %>%
+  select(county, state, NHPct, pctCases) %>%
+  filter(rank(desc(NHPct), ties.method = "first") <= 10)
+X <- Top10NH %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+NHMean <- Y[1,1]
+```
+
+#### Multiracial
+```{r}
+Top10Multi <- RaceJoin %>%
+  select(county, state, MultiPct, pctCases) %>%
+  filter(rank(desc(MultiPct), ties.method = "first") <= 10)
+X <- Top10Multi %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+multiMean <- Y[1,1]
+```
+
+### Age Group Representation per County
+#### Children
+```{r}
+Top10Child <- AgeJoin %>%
+  select(county, state, childrenPct, pctCases) %>%
+  filter(rank(desc(childrenPct), ties.method = "first") <= 10)
+X <- Top10Child %>% 
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+childMean <- as.numeric(Y[1,1])
+```
+
+#### Young Adults
+```{r}
+Top10YA <- AgeJoin %>%
+  select(county, state, young_adultPct, pctCases) %>%
+  filter(rank(desc(young_adultPct), ties.method = "first") <= 10)
+X <- Top10YA %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+YAMean <- as.numeric(Y[1,1])
+```
+
+#### Middle-Aged
+```{r}
+Top10Middle <- AgeJoin %>%
+  select(county, state, middle_agePct, pctCases) %>%
+  filter(rank(desc(middle_agePct), ties.method = "first") <= 10)
+X <- Top10Middle %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+middleMean <- as.numeric(Y[1,1])
+```
+
+#### Seniors
+```{r}
+Top10Senior <- AgeJoin %>%
+  select(county, state, seniorPct, pctCases) %>%
+  filter(rank(desc(seniorPct), ties.method = "first") <= 10)
+X <- Top10Senior %>%
+  summarise(avg = mean(pctCases))
+Y <- round(X, digits = 2)
+seniorMean <- as.numeric(Y[1,1])
+```
+
+## The Juicy Stuff: Visualizing our Question!
+How do the infection rates of the "Top 10" counties for each demographic stack up to the NATIONWIDE infection rate? We can now find out! 
+
+Each demographic will get their own bar plot, in which the x-axis is a discrete variable listing the 10 counties in which they were represented most, while the y-axis is the percent of citizens confirmed to have COVID-19 as of April 23, 2020. 
+
+Two horizontal lines are also present, one which has the y-intercept equaling the NATIONWIDE infection rate, and the other having the y-intercept equaling the mean infection rate of the 10 counties being graphed.
+
+### Race-Related Plots
+#### White
+```{r}
+Top10White %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.28)) +
+  geom_hline(yintercept = whiteMean) +
+  geom_text(aes(label = paste("Graph Mean:", whiteMean, "%"), x = 7, y = whiteMean + 0.02)) +
+  xlab("Counties w/Highest White Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+#### Black
+```{r}
+Top10Black %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 4, y = 0.28)) +
+  geom_hline(yintercept = blackMean) +
+  geom_text(aes(label = paste("Graph Mean:", blackMean, "%"), x = 7, y = blackMean + 0.02)) +
+  xlab("Counties w/Highest Black Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+#### Hispanic
+```{r}
+Top10Hispanic %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.27)) +
+  geom_hline(yintercept = hispanicMean) +
+  geom_text(aes(label = paste("Graph Mean:", hispanicMean, "%"), x = 7, y = hispanicMean + 0.01)) +
+  xlab("Counties w/Highest Hispanic Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+#### Asian
+```{r}
+Top10Asian %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.3)) +
+  geom_hline(yintercept = asianMean) +
+  geom_text(aes(label = paste("Graph Mean:", asianMean, "%"), x = 7, y = asianMean - 0.03)) +
+  xlab("Counties w/Highest Asian Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+#### Native American
+```{r}
+Top10NA %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.3)) +
+  geom_hline(yintercept = NAMean) +
+  geom_text(aes(label = paste("Graph Mean:", NAMean, "%"), x = 7, y = NAMean + 0.03)) +
+  xlab("Counties w/Highest Native American Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+#### Native Hawaiian
+```{r}
+Top10NH %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.27)) +
+  geom_hline(yintercept = NHMean) +
+  geom_text(aes(label = paste("Graph Mean:", NHMean, "%"), x = 7, y = NHMean + 0.01)) +
+  xlab("Counties w/Highest Native Hawaiian Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+#### Multiracial
+```{r}
+Top10Multi %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.27)) +
+  geom_hline(yintercept = multiMean) +
+  geom_text(aes(label = paste("Graph Mean:", multiMean, "%"), x = 7, y = multiMean + 0.01)) +
+  xlab("Counties w/Highest Multiracial Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+### Age-Related Plots
+#### Children
+```{r}
+Top10Child %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.27)) +
+  geom_hline(yintercept = childMean) +
+  geom_text(aes(label = paste("Graph Mean:", childMean, "%"), x = 7, y = childMean + 0.02)) +
+  xlab("Counties w/Highest Child Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+#### Young Adults
+```{r}
+Top10YA %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.28)) +
+  geom_hline(yintercept = YAMean) +
+  geom_text(aes(label = paste("Graph Mean:", YAMean, "%"), x = 7, y = YAMean + 0.02)) +
+  xlab("Counties w/Highest Young Adult Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+#### Middle-Aged
+```{r}
+Top10Middle %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.27)) +
+  geom_hline(yintercept = middleMean) +
+  geom_text(aes(label = paste("Graph Mean:", middleMean, "%"), x = 7, y = middleMean + 0.02)) +
+  xlab("Counties w/Highest Middle-Aged Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+#### Senior
+```{r}
+Top10Senior %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.27)) +
+  geom_hline(yintercept = seniorMean) +
+  geom_text(aes(label = paste("Graph Mean:", seniorMean, "%"), x = 7, y = seniorMean + 0.02)) +
+  xlab("Counties w/Highest Senior Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
 ```
