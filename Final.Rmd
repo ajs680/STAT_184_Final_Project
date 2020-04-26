@@ -36,7 +36,7 @@ COVIDFiltered <- COVID %>%
   filter(date == "2020-04-23", is.numeric(cases) == TRUE) %>%
   select(county, state, cases)
 
-COVIDFiltered %>% head(100) 
+COVIDFiltered 
 ```
 
 ### Census Data
@@ -51,16 +51,16 @@ CensusFiltered <- Census %>%
   mutate(Native_American = NHIA_MALE + NHIA_FEMALE) %>%
   mutate(Native_Hawaiian = NHNA_MALE + NHNA_FEMALE) %>%
   mutate(Multiracial = NHTOM_MALE + NHTOM_FEMALE) %>%
-  mutate(county = gsub(pattern = "^ +| +$", replacement = "", CTYNAME)) %>%
-  mutate(county = gsub(pattern = " {2,}", replacement = " ", CTYNAME)) %>%
-  mutate(county = gsub(pattern = "^[a-z]", replacement = "[A-Z]", CTYNAME)) %>%
-  mutate(county = gsub(pattern = "County$", replacement = "", ignore.case = TRUE, CTYNAME)) %>%
+  mutate(county = gsub(pattern = "County", replacement = "", ignore.case = TRUE, CTYNAME)) %>%
+  mutate(county = gsub(pattern = "^ +| +$", replacement = "", county)) %>%
+  mutate(county = gsub(pattern = " {2,}", replacement = " ", county)) %>%
+  mutate(county = gsub(pattern = "^[a-z]", replacement = "[A-Z]", county)) %>%
   mutate(state = gsub(pattern = "^ +| +$", replacement = "", STNAME)) %>%
-  mutate(state = gsub(pattern = " {2,}", replacement = " ", STNAME)) %>%
-  mutate(state = gsub(pattern = "^[a-z]", replacement = "[A-Z]", STNAME)) %>%
+  mutate(state = gsub(pattern = " {2,}", replacement = " ", state)) %>%
+  mutate(state = gsub(pattern = "^[a-z]", replacement = "[A-Z]", state)) %>%
   select(county, state, AGEGRP, TOT_POP, White, Black, Hispanic, Asian, Native_American, Native_Hawaiian, Multiracial)
 
-CensusFiltered %>% head(100)
+CensusFiltered 
 ```
 
 ## User-Defined Functions
@@ -105,9 +105,9 @@ CensusPctRace <- CensusFiltered %>%
   mutate(NAPct = percentage(Native_American, TOT_POP)) %>%
   mutate(NHPct = percentage(Native_Hawaiian, TOT_POP)) %>%
   mutate(MultiPct = percentage(Multiracial, TOT_POP)) %>%
-  select(county, state, WhitePct, BlackPct, HispanicPct, AsianPct, NAPct, NHPct, MultiPct)
+  select(county, state, TOT_POP, WhitePct, BlackPct, HispanicPct, AsianPct, NAPct, NHPct, MultiPct)
 
-CensusPctRace %>% head(50)
+CensusPctRace
 ```
 
 ### Age-Based
@@ -115,6 +115,7 @@ CensusPctRace %>% head(50)
 CensusPctAge <- CensusFiltered %>%
   select(county, state, TOT_POP, AGEGRP) %>%
   pivot_wider(names_from = AGEGRP, names_prefix = "Group", values_from = TOT_POP) %>%
+  mutate(TOTAL = Group0) %>%
   mutate(children = Group1 + Group2 + Group3) %>% 
   mutate(young_adult = Group4 + Group5 + Group6 + Group7 + Group8) %>% 
   mutate(middle_age = Group9 + Group10 + Group11 + Group12 + Group13) %>% 
@@ -123,108 +124,265 @@ CensusPctAge <- CensusFiltered %>%
   mutate(young_adultPct = percentage(young_adult, Group0)) %>%
   mutate(middle_agePct = percentage(middle_age, Group0)) %>%
   mutate(seniorPct = percentage(senior, Group0)) %>%
-  select(county, state, childrenPct, young_adultPct, middle_agePct, seniorPct)
+  select(county, state, TOTAL, childrenPct, young_adultPct, middle_agePct, seniorPct)
+
+CensusPctAge
 ```
 
-## Top 10 Counties for Each Demographic
-### By Race
+## Joining the Data
+### Using Race
+```{r}
+RaceJoin <- CensusPctRace %>%
+  inner_join(COVIDFiltered) %>%
+  mutate(pctCases = percentage(cases, TOT_POP))
+
+RaceJoin
+```
+
+### Using Age
+```{r}
+AgeJoin <- CensusPctAge %>%
+  inner_join(COVIDFiltered) %>%
+  mutate(pctCases = percentage(cases, TOTAL))
+
+AgeJoin
+```
+
+## Highest Demographic Percentages per County
+### Race
 #### White
 ```{r}
-Top10White <- CensusPctRace %>%
-  filter(rank(desc(WhitePct)) <= 10) %>%
-  select(county, state)
+Top10White <- RaceJoin %>%
+  select(county, state, WhitePct, pctCases) %>%
+  filter(rank(desc(WhitePct)) <= 10)
 
 Top10White
 ```
 
 #### Black
 ```{r}
-Top10Black <- CensusPctRace %>%
-  filter(rank(desc(BlackPct)) <= 10) %>%
-  select(county, state)
+Top10Black <- RaceJoin %>%
+  select(county, state, BlackPct, pctCases) %>%
+  filter(rank(desc(BlackPct)) <= 10)
 
 Top10Black
 ```
 
 #### Hispanic
 ```{r}
-Top10Hispanic <- CensusPctRace %>%
-  filter(rank(desc(HispanicPct)) <= 10) %>%
-  select(county, state)
+Top10Hispanic <- RaceJoin %>%
+  select(county, state, HispanicPct, pctCases) %>%
+  filter(rank(desc(HispanicPct)) <= 10)
 
 Top10Hispanic
 ```
 
 #### Asian
 ```{r}
-Top10Asian <- CensusPctRace %>%
-  filter(rank(desc(AsianPct)) <= 10) %>%
-  select(county, state)
+Top10Asian <- RaceJoin %>%
+  select(county, state, AsianPct, pctCases) %>%
+  filter(rank(desc(AsianPct)) <= 10)
 
 Top10Asian
 ```
 
 #### Native American
 ```{r}
-Top10NativeAmerican <- CensusPctRace %>%
-  filter(rank(desc(NAPct)) <= 10) %>%
-  select(county, state)
+Top10NA <- RaceJoin %>%
+  select(county, state, NAPct, pctCases) %>%
+  filter(rank(desc(NAPct)) <= 10)
 
-Top10NativeAmerican
+Top10NA
 ```
 
 #### Native Hawaiian
 ```{r}
-Top10NativeHawaiian <- CensusPctRace %>%
-  filter(rank(desc(NHPct)) <= 10) %>%
-  select(county, state)
+Top10NH <- RaceJoin %>%
+  select(county, state, NHPct, pctCases) %>%
+  filter(rank(desc(NHPct)) <= 10)
 
-Top10NativeHawaiian
+Top10NH
 ```
 
 #### Multiracial
 ```{r}
-Top10Multi <- CensusPctRace %>%
-  filter(rank(desc(MultiPct)) <= 10) %>%
-  select(county, state)
+Top10Multi <- RaceJoin %>%
+  select(county, state, MultiPct, pctCases) %>%
+  filter(rank(desc(MultiPct)) <= 10)
 
 Top10Multi
 ```
 
-### By Age
+### Age
 #### Children
 ```{r}
-Top10Children <- CensusPctAge %>%
-  filter(rank(desc(childrenPct)) <= 10) %>%
-  select(county, state)
+Top10Child <- AgeJoin %>%
+  select(county, state, childrenPct, pctCases) %>%
+  filter(rank(desc(childrenPct)) <= 10)
 
-Top10Children
+Top10Child
 ```
 
-#### Young Adult
+#### Young Adults
 ```{r}
-Top10YoungAdult <- CensusPctAge %>%
-  filter(rank(desc(young_adultPct)) <= 10) %>%
-  select(county, state)
+Top10YA <- AgeJoin %>%
+  select(county, state, young_adultPct, pctCases) %>%
+  filter(rank(desc(young_adultPct)) <= 10)
 
-Top10YoungAdult
+Top10YA
 ```
 
-#### Middle Age
+#### Middle-Aged
 ```{r}
-Top10MiddleAge <- CensusPctAge %>%
-  filter(rank(desc(middle_agePct)) <= 10) %>%
-  select(county, state)
+Top10Middle <- AgeJoin %>%
+  select(county, state, middle_agePct, pctCases) %>%
+  filter(rank(desc(middle_agePct)) <= 10)
 
-Top10MiddleAge
+Top10Middle
 ```
 
-#### Senior
+#### Seniors
 ```{r}
-Top10Senior <- CensusPctAge %>%
-  filter(rank(desc(seniorPct)) <= 10) %>%
-  select(county, state)
+Top10Senior <- AgeJoin %>%
+  select(county, state, seniorPct, pctCases) %>%
+  filter(rank(desc(seniorPct)) <= 10)
 
 Top10Senior
 ```
 
+## The Juicy Stuff: Visualizing our Question!
+How do the "Top 10" counties for each demographic stack up to the NATIONAL PERCENTAGE?
+
+### Race
+#### White
+```{r}
+Top10White %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.28)) +
+  xlab("Counties w/Highest White Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+#### Black
+```{r}
+Top10Black %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.28)) +
+  xlab("Counties w/Highest Black Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+#### Hispanic
+```{r}
+Top10Hispanic %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.27)) +
+  xlab("Counties w/Highest Hispanic Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+#### Asian
+```{r}
+Top10Asian %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.3)) +
+  xlab("Counties w/Highest Asian Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+#### Native American
+```{r}
+Top10NA %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.3)) +
+  xlab("Counties w/Highest Native American Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+#### Native Hawaiian
+```{r}
+Top10NH %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.27)) +
+  xlab("Counties w/Highest Native Hawaiian Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+#### Multiracial
+```{r}
+Top10Multi %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.27)) +
+  xlab("Counties w/Highest Multiracial Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+### Age
+#### Children
+```{r}
+Top10Child %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.27)) +
+  xlab("Counties w/Highest Child Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+#### Young Adults
+```{r}
+Top10YA %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.28)) +
+  xlab("Counties w/Highest Young Adult Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+#### Middle-Aged
+```{r}
+Top10Middle %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.27)) +
+  xlab("Counties w/Highest Middle-Aged Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
+
+#### Senior
+```{r}
+Top10Senior %>%
+  ggplot(aes(x = county, y = pctCases)) +
+  geom_bar(fill = "light blue", stat = "identity") +
+  geom_hline(yintercept = nationalPct) +
+  geom_text(aes(label = "Nationwide: 0.26%", x = 7, y = 0.27)) +
+  xlab("Counties w/Highest Senior Representation") +
+  ylab("% of Population w/COVID-19") +
+  theme(axis.text.x = element_text(angle = 35))
+```
