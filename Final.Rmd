@@ -108,10 +108,6 @@ CensusFiltered <- Census %>%
   select(county, state, AGEGRP, TOT_POP, White, Black, Hispanic, Asian, Native_American, Native_Hawaiian, Multiracial)
 ```
 
-```{r}
-Covid_Census<- inner_join(CensusFiltered, COVIDFiltered, by="county")
-head(Covid_Census)
-```
 
 ## User-Defined Functions
 The following section describes any functions we created in order to efficiently code for this project.
@@ -200,6 +196,7 @@ CensusPctAge %>% head(10)
 We will now join both of our percentage-converted datasets, which contain demographic data for each county, with `COVIDFiltered`, which contains the number of COVID-19 cases per county. We will get two new tables out of this, one merging `CensusPctRace` with `COVIDFiltered`, the other merging `CensusPctAge` with `COVIDFiltered`.
 
 Additionally, since we now have `cases` (number of COVID-19 cases in a given county) in the same tables as our total county population variables, we will create a new variable, `pctCases` in BOTH newly-merged tables that gives the percentage of people in each county who have tested positive for COVID-19.
+
 
 ### Using Race
 ```{r}
@@ -370,6 +367,7 @@ Top10White %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
+Our top 10 white population counties list in the US includes 4 counties from Kentucky, and 3 counties in West Virgina. Although the group average is far lower than the national average, it is interesting to point out that all of these states are in a neighboring vicinity to one another. 
 
 #### Black
 ```{r}
@@ -384,6 +382,7 @@ Top10Black %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
+The average for top 10 black population counties in the US exactly matches the national average. This is the only demographic with an average this high. A whopping 7 out of 10 of these counties are from the state of Mississippi, which is located right next to Alabama, the state of our top 2 counties in this list. The geopgraphic location of these state is not coincidense. 
 
 #### Hispanic
 ```{r}
@@ -398,6 +397,7 @@ Top10Hispanic %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
+The average percent of cases in the hispanic population is well under the national average. From inspecting our list, we see that ALL of the top 10 hispanic counties in the US is from Texas. 
 
 #### Asian
 ```{r}
@@ -412,6 +412,8 @@ Top10Asian %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
+The average infection rate for asian populations is 0.18%, closer to the national average than other groups are. Middlesex, New Jersey has the highest infection rate we have seen so far at 1.15%, over 4 times the national average. This list contains 5 counties from California and 3 from Hawaii. 
+
 
 #### Native American
 ```{r}
@@ -426,7 +428,7 @@ Top10NA %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
-
+The average infection rate for Native Americans is about half the national average; although, this is still higher than our "Top10White" and "Top10Hispanic". The most popular states for this demographic is Alaska, North and South Dakota. Mckinley, New Mexico has an obscenly high rate of COVID-19 cases, reaching almost 80%. 
 #### Native Hawaiian
 ```{r}
 Top10NH %>%
@@ -454,6 +456,7 @@ Top10Multi %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
+Adair, Oklahoma has almost reached the national average by having a 0.23% infection rate. However, the average infection rate for the multiracial demographic is stll considered to be low at 0.07%. Oklahoma and Hawaii make up almost the entire list.
 
 ### Age-Related Plots
 #### Children
@@ -469,7 +472,7 @@ Top10Child %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
-
+The average COVID rate for children is very low. The outbreak in Adams, Washington has almost reached the national average. 
 #### Young Adults
 ```{r}
 Top10YA %>%
@@ -483,7 +486,7 @@ Top10YA %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
-
+The young adault demographic has the lowest average contraction rate than any of the age or race groups. Within this spread, we have Harrisonburg City, Virginia with a Coronavirus rate of 0.63%. It would be benificial to further explore geographic causes to this outbreak. 
 #### Middle-Aged
 ```{r}
 Top10Middle %>%
@@ -497,7 +500,7 @@ Top10Middle %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
-
+The group average for middle-aged people in the U.S. is just under half of the national average. The top rate in this list is Hunterdon, New Jersey. Given the high volume of outbreaks noted in New Jersey from the previous demographics, it is not surprising that this city had high outbreaks than others in different states. A majority of middle aged people live in Colorado as the top 7 counties in this list are from Colorado. 
 #### Senior
 ```{r}
 Top10Senior %>%
@@ -511,3 +514,6 @@ Top10Senior %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
+
+The group average for senior citizens is low compared to the national average. Some cities come close to 0.26% but the results are not alarming. This demographic seems to have the closest spread across these top 10 cities. 
+

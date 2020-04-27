@@ -43,7 +43,8 @@ output:  html_notebook
 
 
 (E) .Rmd Line number(s) for use of reduction and/or transformation functions: 
-
+(lines 140, 141)-> reduction function
+(lines 143-145)
 
 (F) .Rmd Line number(s) for use of user-defined functions: 
 
