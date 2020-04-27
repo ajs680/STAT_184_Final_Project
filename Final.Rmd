@@ -130,7 +130,7 @@ percentage <- function(x, y){
 Now that we have our `percentage` function up and running, we can start converting the variables we need into percentages.
 
 ### The Nationwide Infection Rate
-To see how prevalent COVID-19 is in certain counties, we have decided to use the NATIONWIDE percentage of the population diagnosed with the disease as a comparison point. This will come into play later, when we are graphing the data.
+To see how prevalent COVID-19 is in certain U.S. counties, we have decided to use the NATIONWIDE percentage of the population diagnosed with the disease as a comparison point. This will come into play later, when we are graphing the data.
 ```{r}
 TotalCOVID <- COVIDFiltered %>%
   summarise(sum = sum(cases))
@@ -515,5 +515,13 @@ Top10Senior %>%
   theme(axis.text.x = element_text(angle = 35))
 ```
 
-The group average for senior citizens is low compared to the national average. Some cities come close to 0.26% but the results are not alarming. This demographic seems to have the closest spread across these top 10 cities. 
+The group average for senior citizens is low compared to the national average. Some cities in this demographic come close to 0.26% but the overall results are not abnormal. 
+
+###Closing Thought Analysis
+
+If we take a look at the bar graphs produced from the 7 racial groups, we can idenify a general trend. This trend is that all the top counties for a particular group have approximately the same outbreak levels with spikes in one or two counties. This, along with the fact that most of the group averages(with the exception of the black demographic) are below the national average, signifies that the COVID-19 virus does not primarily spread through racial groups wihtin an area. The most interesting graph that came from investigating these racial groups was the graph for black population. This was the only demographic that came close to the national average. Our second highest group average came from the asian demographic at 0.18%; however, this average was brought up by the unusally high number of cases in Middlesex, New Jersey. Besides the black population, the overal group averages for race were extremly low. Further analysis can be conducted the see how the outbreak came to spread disproportionally to black populations. 
+
+
+Shifting gears to the 4 age groups of interest, we see more fluctuation in graph behavior. The children and young adult bar graphs follow similar behavior seen in the racial groups, i.e. low rates with large spikes in 1 or 2 counties. The middle aged group, probably the group comprised of the most essential workeres, have the highest group average across all age groups. Even though the senior population does not have the highest infectiopn rate, it seems to have the least variation across all the counties. This is starting to indicate how certain social interactions are contributing to the spread of this virus. Senior citizens are most likely to be placed in group housing, surrounded by more seniors, which could be the reason why this demographic has the most consistant numbers. Children and young adults, tend to be more limited in social interaction because many do not have jobs or are students. It would be worth exploring how the outbreak has spread geographically. In combination with this, our data can be more useful and help us answer more questions. 
+
 
