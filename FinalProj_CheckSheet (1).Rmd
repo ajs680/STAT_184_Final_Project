@@ -1,7 +1,7 @@
 ---
 title: 'Final Project: Guidance Document'
-author: "Author Name(s)"
-date: "Due December 17, 2019"
+author: "Adam Seiff and Kelly Cooper "
+date: "Due April 26th, 2020"
 output:  html_notebook
 ---
 
@@ -29,25 +29,25 @@ output:  html_notebook
 
 
 (A) .Rmd Line number(s) for general data wrangling: 
-
-(lines 66-75) for COVID data, and (lines 93-108) for the cenus data. 
+(lines 66-75) for COVID data (primary), and (lines 93-108) for the cenus data. 
 
 
 (B) .Rmd Line number(s) for a join operation: 
-
+(lines 203-205) and (lines 210-212)
 
 (C) .Rmd Line number(s) for a spread or gather operation (or equivalent):
-
+(line 181)
 
 (D) .Rmd Line number(s) for use of regular expressions: 
-
+(lines 67-73) for covid data
+(lines 94-107) for census data
 
 (E) .Rmd Line number(s) for use of reduction and/or transformation functions: 
-(lines 140, 141)-> reduction function
-(lines 143-145)
+(lines 135-136)
+(lines 138-140) 
 
 (F) .Rmd Line number(s) for use of user-defined functions: 
-
+(lines 122-125) for the percentage function
 
 (G) .Rmd Line number(s) for use of loops and/or control flow: 
 
@@ -62,11 +62,13 @@ output:  html_notebook
 
 
 (A) .Rmd Line number(s) for use of mulitple different geoms:  
-
+(lines 363-367)
 (B) .Rmd Line number(s) for use of multiple aesthetics:  
-
+(lines 368-370)
+(lines 385-387)
 (C) .Rmd Line number(s) for use of layered graphics:  
-
+ (lines 364, 366)
+ (lines 381, 383)
 (D) .Rmd Line number(s) for use of leaflet maps:  
 
 (E) .Rmd Line number(s) for use of decision tree or dendogram results:    
