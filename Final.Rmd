@@ -353,6 +353,8 @@ Each demographic will get their own bar plot, in which the x-axis is a discrete 
 
 Two horizontal lines are also present, one which has the y-intercept equaling the NATIONWIDE infection rate, and the other having the y-intercept equaling the mean infection rate of the 10 counties being graphed.
 
+**NOTE:** the names of each county are displayed on the bar graphs, but due to time constraints, we were NOT able to place their corresponding state names in a way that kept the plots clean-looking. To see state names, we used the `View()` function on the dataframes the graphs were based upon!
+
 ### Race-Related Plots
 #### White
 ```{r}
@@ -367,7 +369,9 @@ Top10White %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
-Our top 10 white population counties list in the US includes 4 counties from Kentucky, and 3 counties in West Virgina. Although the group average is far lower than the national average, it is interesting to point out that all of these states are in a neighboring vicinity to one another. 
+On average, the 10 counties with the highest white representation had a COVID-19 infection rate of 0.06%, significantly lower than the national rate of 0.26%. One thing to note is that almost every county graphed here
+
+Also, `Top10White` includes 4 counties in Kentucky, 3 counties in West Virgina, and 1 county from Pennsylvania. It is interesting to point out that all of these states are in a neighboring vicinity to one another, perhaps suggesting the infection rate for that general region is low. 
 
 #### Black
 ```{r}
@@ -382,7 +386,9 @@ Top10Black %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
-The average for top 10 black population counties in the US exactly matches the national average. This is the only demographic with an average this high. A whopping 7 out of 10 of these counties are from the state of Mississippi, which is located right next to Alabama, the state of our top 2 counties in this list. The geopgraphic location of these state is not coincidense. 
+On average, the 10 counties with the highest black representation had a COVID-19 infection rate of 0.26%. Coincidentally, this matches the national infection rate. Out of all eleven sets of counties we are analyzing, this is the only demographic with a rate this high. 
+
+A whopping 7 out of 10 of these counties are from the state of Mississippi, which is located right next to Alabama, represented by 2 counties in `Top10Black`. This may indicate a high infection rate for this region. 
 
 #### Hispanic
 ```{r}
@@ -397,7 +403,9 @@ Top10Hispanic %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
-The average percent of cases in the hispanic population is well under the national average. From inspecting our list, we see that ALL of the top 10 hispanic counties in the US is from Texas. 
+On average, the 10 counties with the highest Hispanic representation had a COVID-19 infection rate of 0.04%, well below the national infection rate of 0.26%.
+
+From inspecting `Top10Hispanic`, we see that counties listed here are located in Texas. Does Texas have a relatively low infection rate compared to the rest of the country? 
 
 #### Asian
 ```{r}
@@ -412,8 +420,9 @@ Top10Asian %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
-The average infection rate for asian populations is 0.18%, closer to the national average than other groups are. Middlesex, New Jersey has the highest infection rate we have seen so far at 1.15%, over 4 times the national average. This list contains 5 counties from California and 3 from Hawaii. 
+On average, the 10 counties with the highest Asian representation had a COVID-19 infection rate of 0.18%, closer to the national average than other groups are. This may be due to Middlesex, New Jersey having the highest infection rate we have seen so far at 1.15%, over four times the national rate.
 
+This list also contains 5 counties from California, 3 from Hawaii, and 1 from Alaska. The Hawaiian and Alaskan counties seem to have lower infection rates than other states.
 
 #### Native American
 ```{r}
@@ -428,7 +437,10 @@ Top10NA %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
-The average infection rate for Native Americans is about half the national average; although, this is still higher than our "Top10White" and "Top10Hispanic". The most popular states for this demographic is Alaska, North and South Dakota. Mckinley, New Mexico has an obscenly high rate of COVID-19 cases, reaching almost 80%. 
+On average, the 10 counties with the highest Native American representation had a COVID-19 infection rate of 0.13%, about half the national rate. This is still higher than our `Top10White` and `Top10Hispanic`. 
+
+The most represented states for this graph are Alaska, North and South Dakota. However, Apache, Arizona and Mckinley, New Mexico both stick out with relatively high rates of COVID-19, reaching about 0.35% and almost 0.8% respectively.
+
 #### Native Hawaiian
 ```{r}
 Top10NH %>%
@@ -442,6 +454,7 @@ Top10NH %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
+On average, the 10 counties with the highest Native Hawaiian representation had a COVID-19 infection rate of 0.04%. Most of the counties actually had even lower infection rates than this, though Salt Lake, Utah stands out with a rate of about 0.16%, which is still below the national rate.
 
 #### Multiracial
 ```{r}
@@ -456,7 +469,9 @@ Top10Multi %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
-Adair, Oklahoma has almost reached the national average by having a 0.23% infection rate. However, the average infection rate for the multiracial demographic is stll considered to be low at 0.07%. Oklahoma and Hawaii make up almost the entire list.
+On average, the 10 counties with the highest multiracial representation had a COVID-19 infection rate of 0.07%. Oklahoma and Hawaii make up almost the entirety of `Top10Multi`.
+
+Adair, Oklahoma has almost reached the national rate by having about a 0.23% infection rate. Oklahoma and Hawaii make up almost the entire list.
 
 ### Age-Related Plots
 #### Children
@@ -472,7 +487,8 @@ Top10Child %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
-The average COVID rate for children is very low. The outbreak in Adams, Washington has almost reached the national average. 
+On average, the 10 counties with the highest child representation had a COVID-19 infection rate of 0.04%, though Adams, Washington has almost reached the national infection rate. 
+
 #### Young Adults
 ```{r}
 Top10YA %>%
@@ -486,7 +502,8 @@ Top10YA %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
-The young adault demographic has the lowest average contraction rate than any of the age or race groups. Within this spread, we have Harrisonburg City, Virginia with a Coronavirus rate of 0.63%. It would be benificial to further explore geographic causes to this outbreak. 
+On average, the 10 counties with the highest young adult representation had a COVID-19 infection rate of 0.1%. Notably though, Harrisonburg City, Virginia had an infection rate of 0.63%. 
+
 #### Middle-Aged
 ```{r}
 Top10Middle %>%
@@ -500,7 +517,8 @@ Top10Middle %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
-The group average for middle-aged people in the U.S. is just under half of the national average. The top rate in this list is Hunterdon, New Jersey. Given the high volume of outbreaks noted in New Jersey from the previous demographics, it is not surprising that this city had high outbreaks than others in different states. A majority of middle aged people live in Colorado as the top 7 counties in this list are from Colorado. 
+On average, the 10 counties with the highest middle-aged representation had a COVID-19 infection rate of 0.11% just under half of the national rate. The top rate in this list comes from Hunterdon, New Jersey. Given the high volume of outbreaks noted in New Jersey from the previous demographics, it is not surprising that this city had high outbreaks than others in different states. 
+
 #### Senior
 ```{r}
 Top10Senior %>%
@@ -514,14 +532,9 @@ Top10Senior %>%
   ylab("% of Population w/COVID-19") +
   theme(axis.text.x = element_text(angle = 35))
 ```
+On average, the 10 counties with the highest senior representation had a COVID-19 infection rate of 0.07%. Some counties in `Top10Senior` come slightly closer to the 0.26% national rate, but the overall results are not high. 
 
-The group average for senior citizens is low compared to the national average. Some cities in this demographic come close to 0.26% but the overall results are not abnormal. 
+## Concluding Remarks
+Strangely enough, for every graph, every demographic studied, none of the counties' mean COVID-19 infection rates ever exceeded the national rate of 0.26%. The closest exception to this was the mean infection rates of the counties in `Top10Black`, which exactly matched the national rate. This MIGHT be due to us only picking the 10 highest-represented counties for each demographic, so a higher number of counties may give us different answers. While it may be tempting to state that high representation of certain demographics correlates negatively with a county's infection rate, the fact that EVERY graph mean rate was so low may indicate that the representation of particular demographics in a given county does NOT have much to do with said county's infection rate.
 
-###Closing Thought Analysis
-
-If we take a look at the bar graphs produced from the 7 racial groups, we can idenify a general trend. This trend is that all the top counties for a particular group have approximately the same outbreak levels with spikes in one or two counties. This, along with the fact that most of the group averages(with the exception of the black demographic) are below the national average, signifies that the COVID-19 virus does not primarily spread through racial groups wihtin an area. The most interesting graph that came from investigating these racial groups was the graph for black population. This was the only demographic that came close to the national average. Our second highest group average came from the asian demographic at 0.18%; however, this average was brought up by the unusally high number of cases in Middlesex, New Jersey. Besides the black population, the overal group averages for race were extremly low. Further analysis can be conducted the see how the outbreak came to spread disproportionally to black populations. 
-
-
-Shifting gears to the 4 age groups of interest, we see more fluctuation in graph behavior. The children and young adult bar graphs follow similar behavior seen in the racial groups, i.e. low rates with large spikes in 1 or 2 counties. The middle aged group, probably the group comprised of the most essential workeres, have the highest group average across all age groups. Even though the senior population does not have the highest infectiopn rate, it seems to have the least variation across all the counties. This is starting to indicate how certain social interactions are contributing to the spread of this virus. Senior citizens are most likely to be placed in group housing, surrounded by more seniors, which could be the reason why this demographic has the most consistant numbers. Children and young adults, tend to be more limited in social interaction because many do not have jobs or are students. It would be worth exploring how the outbreak has spread geographically. In combination with this, our data can be more useful and help us answer more questions. 
-
-
+However, one common pattern we noticed came when comparing counties of similar COVID-19 infection rates WITHIN each bar plot. There were almost always a few counties that had either unusually high or unusually low infection rates, and we noticed that counties with similar rates were oftentimes located in the same state or general region. Perhaps this suggests that race or age representation may not strongly correlate with a county's infection rate, but rather its LOCATION does. If we were to follow up on this project in the future, this would most likely be our guiding question. Although we did not get the most concrete answers from this project, our work still led us to a potentially better question to ask. This is all a natural part of the statistical process!
